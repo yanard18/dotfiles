@@ -13,11 +13,12 @@
 (setq initial-scratch-message "")      ;; Clean, empty scratch buffer
 (setq initial-major-mode 'lisp-interaction-mode) 
 
-;;; --- TABS & INDENTATION (Global Fallbacks) ---
-(setq-default indent-tabs-mode t)      ;; Vim: set noexpandtab
-(setq-default tab-always-indent nil)   ;; Allow inserting a real tab character
-(setq-default tab-width 4)             ;; Vim: set tabstop=4
-(setq-default standard-indent 4)       ;; Default indentation step
+;;; --- TABS & INDENTATION ---
+(setq-default indent-tabs-mode t)      ;; Use tabs instead of spaces
+(setq-default tab-always-indent nil)   ;; Tab key inserts real tab when appropriate
+(setq-default tab-width 4)             ;; Visual width of a tab
+(setq-default standard-indent 4)       ;; Indentation step
+(setq-default backward-delete-char-untabify nil) ;; Don't turn tabs into spaces on delete
 
 ;;; --- C/C++ MODE (Matching Vim's cindent) ---
 (defun my-c-mode-hook ()
@@ -64,6 +65,11 @@
 (setq custom-file "~/.emacs.d/emacs.custom")
 (load custom-file 'noerror)
 
+(use-package gruber-darker-theme
+  :ensure t
+  :config
+  (load-theme 'gruber-darker t))
+
 ;;; ==========================================
 ;;; EVIL MODE (VIM EMULATION)
 ;;; ==========================================
@@ -102,30 +108,17 @@
     :prefix "SPC"
     :non-normal-prefix "M-SPC")
 
-(if (version<= "29.1" emacs-version)
-      ;; Modern Consult Bindings (Emacs 29.1+)
-      (my-leader-def
-        "b" 'consult-buffer
-        "f" 'consult-find
-        "s" 'consult-line
-        "g" 'consult-grep
-        "i" 'ibuffer)
-    ;; Fallback Standard Bindings (Emacs 27.1)
-    (my-leader-def
-      "b" 'switch-to-buffer
-      "f" 'find-file
-      "s" 'isearch-forward
-      "g" 'grep
-      "i" 'ibuffer)))
+  ;; Single Source of Truth for core actions (removed M-s overlapping logic)
+  (my-leader-def
+    "b" 'consult-buffer
+    "f" 'consult-find
+    "s" 'consult-line
+    "g" 'consult-grep
+    "i" 'ibuffer))
 
 ;;; ==========================================
 ;;; UTILITIES & TOOLS
 ;;; ==========================================
-(use-package avy
-  :ensure t
-  :bind (("C-;" . avy-goto-char)
-         ("C-'" . avy-goto-char-2)))
-
 ;; Global fallback for ibuffer (optional, since SPC i does this too)
 (global-set-key (kbd "C-x C-b") 'ibuffer) 
 
@@ -147,19 +140,17 @@
   (evil-define-key 'motion org-mode-map (kbd "RET") 'org-return)
   (evil-define-key 'normal org-mode-map (kbd "RET") 'org-return))
 
-(when (version<= "29.1" emacs-version)
-  (use-package org-modern
-	:ensure t
-	:hook (org-mode . org-modern-mode)
-	:config
-	(setq
-	 ;; Edit these to your liking
-	 org-modern-star '("◉" "○" "◈" "◇" "⁖")
-	 org-modern-table nil   ; Set to t if you want fancy tables
-	 org-modern-tag t
-	 org-modern-priority t
-	 org-modern-keyword t)))
-
+(use-package org-modern
+  :ensure t
+  :hook (org-mode . org-modern-mode)
+  :config
+  (setq
+   ;; Edit these to your liking
+   org-modern-star '("◉" "○" "◈" "◇" "⁖")
+   org-modern-table nil   ; Set to t if you want fancy tables
+   org-modern-tag t
+   org-modern-priority t
+   org-modern-keyword t))
 
 (custom-set-faces
  ;; 1. Large Source Blocks
@@ -184,26 +175,24 @@
 ;;; ==========================================
 ;;; COMPLETION FRAMEWORK
 ;;; ==========================================
-(when (version<= "29.1" emacs-version)
-  (use-package consult
-	:ensure t
-	;; Bindings cleared: Rely on your General 'SPC' bindings to prevent overlap
-	))
+(use-package consult
+  :ensure t
+  ;; Bindings cleared: Rely on your General 'SPC' bindings to prevent overlap
+  )
 
-(when (version<= "29.1" emacs-version)
-  (use-package vertico
-	:ensure t
-	:init
-	(vertico-mode 1)
-	:bind (:map vertico-map
-				("C-j" . vertico-next)
-				("C-k" . vertico-previous)
-				("C-l" . vertico-exit)) ;; Note: usually RET is exit, but leaving C-l per your preference
-	:config
-	;; Do not allow the cursor in the minibuffer prompt
-	(setq minibuffer-prompt-properties
-		  '(read-only t cursor-intangible t face minibuffer-prompt))
-	(add-hook 'minibuffer-setup-hook 'cursor-intangible-mode)))
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode 1)
+  :bind (:map vertico-map
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)
+              ("C-l" . vertico-exit)) ;; Note: usually RET is exit, but leaving C-l per your preference
+  :config
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
 
 ;; ;;; --- ORDERLESS (Better Filtering) ---
 ;; (use-package orderless
@@ -212,4 +201,3 @@
 ;;   (completion-styles '(orderless basic))
 ;;   (completion-category-overrides '((file (styles basic partial-completion)))))
 
-(require 'ox-md)
