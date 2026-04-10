@@ -129,10 +129,12 @@
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
 (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer)
 
+
 ;;; --- ORG MODE ---
 (use-package org
   :hook (org-mode . visual-line-mode)
   :config
+  (require 'org-tempo)
   (setq org-return-follows-link t)
   (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
   
@@ -152,6 +154,16 @@
    org-modern-priority t
    org-modern-keyword t))
 
+;; center the text and set 80 col wdith
+(use-package visual-fill-column
+  :ensure t
+  :hook (org-mode . visual-fill-column-mode)
+  :custom
+  (fill-column 80)
+  (visual-fill-column-width 80)
+  (visual-fill-column-center-text t))
+
+
 (custom-set-faces
  ;; 1. Large Source Blocks
  '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
@@ -163,12 +175,13 @@
                  :foreground "#ce9178" 
                  :box (:line-width 1 :color "#3e3e3e") 
                  :inherit fixed-pitch))))
- 
- ;; 3. Verbatim (~verbatim~)
+
+;; Matches org-code so that ~verbatim~ looks identical to =code=
  '(org-verbatim ((t (:background "#2e2e2e" 
-                     :foreground "#b5cea8" 
-                     :box (:line-width 1 :color "#3e3e3e") 
-                     :inherit fixed-pitch)))))
+                      :foreground "#ce9178" 
+                      :box (:line-width 1 :color "#3e3e3e") 
+                      :inherit fixed-pitch 
+                      :family "monospace")))))
 
 (setq org-src-window-setup 'current-window) ;; Edit code in the same window
 
@@ -200,4 +213,48 @@
 ;;   :custom
 ;;   (completion-styles '(orderless basic))
 ;;   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+
+(use-package markdown-mode
+  :ensure t
+  :mode ("\\.\\(?:md\\|markdown\\|mkd\\|mdown\\|mkdn\\|mdwn\\)\\'" . markdown-mode)
+  :config
+  (setq markdown-command "multimarkdown")
+  
+  ;; 1. The "Magic" setting for code blocks
+  (setq markdown-fontify-code-blocks-natively t)
+  
+  ;; 2. Make headers scale (if the theme supports it)
+  (setq markdown-header-scaling t)
+  
+  ;; 3. Hide the markup symbols (*, #, etc.) for a cleaner look
+  ;; You can toggle this with M-x markdown-toggle-markup-hidden
+  (setq markdown-hide-markup nil) 
+
+  (add-hook 'markdown-mode-hook
+            (lambda ()
+              (setq indent-tabs-mode t)
+              (setq tab-width 4)
+              (visual-line-mode 1))))
+
+(custom-set-faces
+ ;; ... (keep your existing org faces here) ...
+
+ ;; Markdown: Scaled Headers (Level 1-6) - All White
+ '(markdown-header-face-1 ((t (:inherit bold :foreground "white" :height 1.4))))
+ '(markdown-header-face-2 ((t (:inherit bold :foreground "white" :height 1.2))))
+ '(markdown-header-face-3 ((t (:inherit bold :foreground "white" :height 1.1))))
+ '(markdown-header-face-4 ((t (:inherit bold :foreground "white" :height 1.0))))
+ '(markdown-header-face-5 ((t (:inherit bold :foreground "white" :height 1.0))))
+ '(markdown-header-face-6 ((t (:inherit bold :foreground "white" :height 1.0))))
+
+ ;; Markdown: Code Blocks (The ``` blocks)
+ '(markdown-code-face ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch :family "monospace"))))
+ 
+ ;; Markdown: Inline Code (The `block` blocks)
+ '(markdown-inline-code-face ((t (:background "#2e2e2e" 
+                                  :foreground "#ce9178" 
+                                  :box (:line-width 1 :color "#3e3e3e") 
+                                  :inherit fixed-pitch
+                                  :family "monospace")))))
 
