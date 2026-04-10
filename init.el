@@ -142,6 +142,17 @@
   (evil-define-key 'motion org-mode-map (kbd "RET") 'org-return)
   (evil-define-key 'normal org-mode-map (kbd "RET") 'org-return))
 
+(setq org-hide-emphasis-markers t)
+
+(use-package org-appear
+  :ensure t
+  :hook (org-mode . org-appear-mode)
+  :config
+  ;; This makes it work for links, bold, code, etc.
+  (setq org-appear-autolinks t
+        org-appear-autosubmarkers t
+        org-appear-autokeywords t))
+
 (use-package org-modern
   :ensure t
   :hook (org-mode . org-modern-mode)
