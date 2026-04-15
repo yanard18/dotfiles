@@ -1,67 +1,51 @@
 ;;; ==========================================
-;;; CORE UI & BEHAVIOR
+;;; core ui & behavior
 ;;; ==========================================
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 (column-number-mode 1)
-
 (setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode 1)
-(global-auto-revert-mode t)            ;; Reload buffer when file changed
-(setq inhibit-startup-screen t)        ;; No splash screen
-(setq initial-scratch-message "")      ;; Clean, empty scratch buffer
+(global-auto-revert-mode t)
+(setq inhibit-startup-screen t)
+(setq initial-scratch-message "")
 (setq initial-major-mode 'lisp-interaction-mode) 
 
-;;; --- TABS & INDENTATION ---
-(setq-default indent-tabs-mode t)      ;; Use tabs instead of spaces
-(setq-default tab-always-indent nil)   ;; Tab key inserts real tab when appropriate
-(setq-default tab-width 4)             ;; Visual width of a tab
-(setq-default standard-indent 4)       ;; Indentation step
-(setq-default backward-delete-char-untabify nil) ;; Don't turn tabs into spaces on delete
+;;; --- tabs & indentation ---
+(setq-default indent-tabs-mode t)      ;; use tabs instead of spaces
+(setq-default tab-always-indent nil)   ;; tab key inserts real tab when appropriate
+(setq-default tab-width 4)             ;; visual width of a tab
+(setq-default standard-indent 4)       ;; indentation step
+(setq-default backward-delete-char-untabify nil) ;; don't turn tabs into spaces on delete
 
-;;; --- C/C++ MODE (Matching Vim's cindent) ---
-(defun my-c-mode-hook ()
-  ;; Use a base style that closely mimics standard Vim cindent
-  ;;(c-set-style "bsd")
+(defun c-hook ()
   (c-set-style "linux")
-  
-  ;; Force C-mode to use hard tabs (cc-mode can sometimes override global settings)
   (setq indent-tabs-mode t)
-  
-  ;; Vim: set shiftwidth=4
   (setq c-basic-offset 4)
-  
-  ;; Vim: set tabstop=4 (Ensure C-mode specifically uses visual width of 4)
   (setq tab-width 4)
-  
-  ;; Match Evil's indentation operator (>> and <<) to the C offset
   (setq-local evil-shift-width 4)
-  
-  ;; Prevent Tab from ONLY indenting; allow it to insert a tab character like Vim's insert mode
   (setq c-tab-always-indent nil))
 
-(add-hook 'c-mode-hook 'my-c-mode-hook)
-(add-hook 'c++-mode-hook 'my-c-mode-hook)
+(add-hook 'c-mode-hook 'c-hook)
+(add-hook 'c++-mode-hook 'c-hook)
 
-;;; --- AUTO SAVE & BACKUP ---
+;;; --- auto save & backup ---
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups/")))
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save/" t)))
-(setq create-lockfiles nil) ;; Disable lock files (.#filename)
-
-;; Create the directories automatically if they don't exist
+(setq create-lockfiles nil) ;; disable lock files (.#filename)
 (make-directory "~/.emacs.d/backups/" t)
 (make-directory "~/.emacs.d/auto-save/" t)
 
 ;;; ==========================================
-;;; PACKAGE MANAGEMENT
+;;; package management
 ;;; ==========================================
 (require 'package)
 (setq package-archives '(("gnu"   . "https://elpa.gnu.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
-;;; --- THEME ---
+;;; --- theme ---
 (setq custom-file "~/.emacs.d/emacs.custom")
 (load custom-file 'noerror)
 
@@ -71,7 +55,7 @@
   (load-theme 'gruber-darker t))
 
 ;;; ==========================================
-;;; EVIL MODE (VIM EMULATION)
+;;; evil mode (vim emulation)
 ;;; ==========================================
 (use-package evil
   :ensure t
@@ -82,11 +66,9 @@
   (evil-mode 1)
   (setq evil-backspace-join-lines nil)
   (setq evil-want-visual-char-semi-at-end-of-line t)
-  
-  ;; Fix Backspace in insert mode
+  ;; fix backspace in insert mode
   (define-key evil-insert-state-map [backspace] 'backward-delete-char)
-  
-  ;; Global Visual Line Navigation (Moved out of Org-mode scope)
+  ;; global visual line navigation (moved out of org-mode scope)
   (define-key evil-motion-state-map (kbd "j") 'evil-next-visual-line)
   (define-key evil-motion-state-map (kbd "k") 'evil-previous-visual-line))
 
@@ -97,18 +79,18 @@
   (evil-collection-init))
 
 ;;; ==========================================
-;;; LEADER KEY (GENERAL.EL)
+;;; leader key (general.el)
 ;;; ==========================================
 (use-package general
   :ensure t
   :config
   (general-create-definer my-leader-def
     :states '(normal visual motion emacs)
-    :keymaps 'override ;; Ensures SPC works even in Dired/Magit overriding default modes
-    :prefix "SPC"
-    :non-normal-prefix "M-SPC")
+    :keymaps 'override ;; ensures spc works even in dired/magit overriding default modes
+    :prefix "spc"
+    :non-normal-prefix "m-spc")
 
-  ;; Single Source of Truth for core actions (removed M-s overlapping logic)
+  ;; single source of truth for core actions (removed m-s overlapping logic)
   (my-leader-def
     "b" 'consult-buffer
     "f" 'consult-find
@@ -117,30 +99,25 @@
     "i" 'ibuffer))
 
 ;;; ==========================================
-;;; UTILITIES & TOOLS
+;;; colors
 ;;; ==========================================
-;; Global fallback for ibuffer (optional, since SPC i does this too)
-(global-set-key (kbd "C-x C-b") 'ibuffer) 
-
-;; Compilation Colors
 (require 'ansi-color)
 (defun my-colorize-compilation-buffer ()
   (let ((inhibit-read-only t))
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
 (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer)
 
-
-;;; --- ORG MODE ---
+;;; ==========================================
+;;; org mode
+;;; ==========================================
 (use-package org
   :hook (org-mode . visual-line-mode)
   :config
   (require 'org-tempo)
   (setq org-return-follows-link t)
   (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
-  
-  ;; Force Evil to use Org's return logic
-  (evil-define-key 'motion org-mode-map (kbd "RET") 'org-return)
-  (evil-define-key 'normal org-mode-map (kbd "RET") 'org-return))
+  (evil-define-key 'motion org-mode-map (kbd "ret") 'org-return)
+  (evil-define-key 'normal org-mode-map (kbd "ret") 'org-return))
 
 (setq org-hide-emphasis-markers t)
 
@@ -148,7 +125,7 @@
   :ensure t
   :hook (org-mode . org-appear-mode)
   :config
-  ;; This makes it work for links, bold, code, etc.
+  ;; this makes it work for links, bold, code, etc.
   (setq org-appear-autolinks t
         org-appear-autosubmarkers t
         org-appear-autokeywords t))
@@ -158,9 +135,9 @@
   :hook (org-mode . org-modern-mode)
   :config
   (setq
-   ;; Edit these to your liking
+   ;; edit these to your liking
    org-modern-star '("◉" "○" "◈" "◇" "⁖")
-   org-modern-table nil   ; Set to t if you want fancy tables
+   org-modern-table nil   ; set to t if you want fancy tables
    org-modern-tag t
    org-modern-priority t
    org-modern-keyword t))
@@ -175,33 +152,14 @@
   (visual-fill-column-center-text t))
 
 
-(custom-set-faces
- ;; 1. Large Source Blocks
- '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
- '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
- '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
- 
- ;; 2. Inline Code (=code=) - Added a :box for a "button" effect
- '(org-code ((t (:background "#2e2e2e" 
-                 :foreground "#ce9178" 
-                 :box (:line-width 1 :color "#3e3e3e") 
-                 :inherit fixed-pitch))))
-
-;; Matches org-code so that ~verbatim~ looks identical to =code=
- '(org-verbatim ((t (:background "#2e2e2e" 
-                      :foreground "#ce9178" 
-                      :box (:line-width 1 :color "#3e3e3e") 
-                      :inherit fixed-pitch 
-                      :family "monospace")))))
-
-(setq org-src-window-setup 'current-window) ;; Edit code in the same window
+(setq org-src-window-setup 'current-window) ;; edit code in the same window
 
 ;;; ==========================================
-;;; COMPLETION FRAMEWORK
+;;; completion framework
 ;;; ==========================================
 (use-package consult
   :ensure t
-  ;; Bindings cleared: Rely on your General 'SPC' bindings to prevent overlap
+  ;; bindings cleared: rely on your general 'spc' bindings to prevent overlap
   )
 
 (use-package vertico
@@ -209,63 +167,50 @@
   :init
   (vertico-mode 1)
   :bind (:map vertico-map
-              ("C-j" . vertico-next)
-              ("C-k" . vertico-previous)
-              ("C-l" . vertico-exit)) ;; Note: usually RET is exit, but leaving C-l per your preference
+              ("c-j" . vertico-next)
+              ("c-k" . vertico-previous)
+              ("c-l" . vertico-exit)) ;; note: usually ret is exit, but leaving c-l per your preference
   :config
-  ;; Do not allow the cursor in the minibuffer prompt
+  ;; do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
 
-;; ;;; --- ORDERLESS (Better Filtering) ---
-;; (use-package orderless
-;;   :ensure t
-;;   :custom
-;;   (completion-styles '(orderless basic))
-;;   (completion-category-overrides '((file (styles basic partial-completion)))))
 
+;;; ==========================================
+;;; markdown
+;;; ==========================================
 
 (use-package markdown-mode
   :ensure t
   :mode ("\\.\\(?:md\\|markdown\\|mkd\\|mdown\\|mkdn\\|mdwn\\)\\'" . markdown-mode)
   :config
   (setq markdown-command "multimarkdown")
-  
-  ;; 1. The "Magic" setting for code blocks
   (setq markdown-fontify-code-blocks-natively t)
-  
-  ;; 2. Make headers scale (if the theme supports it)
   (setq markdown-header-scaling t)
-  
-  ;; 3. Hide the markup symbols (*, #, etc.) for a cleaner look
-  ;; You can toggle this with M-x markdown-toggle-markup-hidden
   (setq markdown-hide-markup nil) 
-
   (add-hook 'markdown-mode-hook
             (lambda ()
               (setq indent-tabs-mode t)
               (setq tab-width 4)
               (visual-line-mode 1))))
 
+;;; ==========================================
+;;; faces (org & markdown)
+;;; ==========================================
 (custom-set-faces
- ;; ... (keep your existing org faces here) ...
+ ;; org blocks
+ '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
+ '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
+ '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
+ ;; org - code & verbatim (button effect)
+ '(org-code ((t (:background "#2e2e2e" :foreground "#ce9178" :box (:line-width 1 :color "#3e3e3e") :inherit fixed-pitch))))
+ '(org-verbatim ((t (:inherit org-code :family "monospace")))) ;; inherits everything from org-code
+ '(markdown-inline-code-face ((t (:inherit org-code :family "monospace")))) ;; reuse the same look for markdown
 
- ;; Markdown: Scaled Headers (Level 1-6) - All White
+ ;; markdown
  '(markdown-header-face-1 ((t (:inherit bold :foreground "white" :height 1.4))))
  '(markdown-header-face-2 ((t (:inherit bold :foreground "white" :height 1.2))))
  '(markdown-header-face-3 ((t (:inherit bold :foreground "white" :height 1.1))))
- '(markdown-header-face-4 ((t (:inherit bold :foreground "white" :height 1.0))))
- '(markdown-header-face-5 ((t (:inherit bold :foreground "white" :height 1.0))))
- '(markdown-header-face-6 ((t (:inherit bold :foreground "white" :height 1.0))))
-
- ;; Markdown: Code Blocks (The ``` blocks)
  '(markdown-code-face ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch :family "monospace"))))
- 
- ;; Markdown: Inline Code (The `block` blocks)
- '(markdown-inline-code-face ((t (:background "#2e2e2e" 
-                                  :foreground "#ce9178" 
-                                  :box (:line-width 1 :color "#3e3e3e") 
-                                  :inherit fixed-pitch
-                                  :family "monospace")))))
-
+)
