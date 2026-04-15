@@ -86,9 +86,9 @@
   :config
   (general-create-definer my-leader-def
     :states '(normal visual motion emacs)
-    :keymaps 'override ;; ensures spc works even in dired/magit overriding default modes
-    :prefix "spc"
-    :non-normal-prefix "m-spc")
+    :keymaps 'override
+    :prefix "SPC"
+    :non-normal-prefix "M-SPC")
 
   ;; single source of truth for core actions (removed m-s overlapping logic)
   (my-leader-def
@@ -114,6 +114,7 @@
   :hook (org-mode . visual-line-mode)
   :config
   (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("bash" . "src bash"))
   (setq org-return-follows-link t)
   (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
   (evil-define-key 'motion org-mode-map (kbd "ret") 'org-return)
@@ -167,9 +168,9 @@
   :init
   (vertico-mode 1)
   :bind (:map vertico-map
-              ("c-j" . vertico-next)
-              ("c-k" . vertico-previous)
-              ("c-l" . vertico-exit)) ;; note: usually ret is exit, but leaving c-l per your preference
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)
+              ("C-l" . vertico-exit)) ;; note: usually ret is exit, but leaving c-l per your preference
   :config
   ;; do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
