@@ -114,13 +114,14 @@
   :hook (org-mode . visual-line-mode)
   :config
   (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("bash" . "src bash"))
+  (setq org-hide-emphasis-markers t)
+  (setq org-hide-drawer-startup t)
   (setq org-return-follows-link t)
   (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
   (evil-define-key 'motion org-mode-map (kbd "ret") 'org-return)
   (evil-define-key 'normal org-mode-map (kbd "ret") 'org-return))
 
-(setq org-hide-emphasis-markers t)
+
 
 (use-package org-appear
   :ensure t
@@ -143,6 +144,7 @@
    org-modern-priority t
    org-modern-keyword t))
 
+
 ;; center the text and set 80 col wdith
 (use-package visual-fill-column
   :ensure t
@@ -152,8 +154,34 @@
   (visual-fill-column-width 80)
   (visual-fill-column-center-text t))
 
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "~/RoamNotes")) 
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture))
+  :config
+  (org-roam-db-autosync-mode))
 
-(setq org-src-window-setup 'current-window) ;; edit code in the same window
+(general-define-key
+ :keymaps 'org-mode-map
+ :states '(normal motion)
+ "RET" 'org-open-at-point)
+
+;; edit code in the same window
+(setq org-src-window-setup 'current-window) 
+
+;; Stop Org from indenting the content of source blocks
+(setq org-edit-src-content-indentation 0)
+
+;; Ensure that what you see in the edit buffer is exactly what is in the Org file
+(setq org-src-preserve-indentation t)
+
+;; Agenda (this might be slow when have so much notes)
+(setq org-agenda-files (directory-files-recursively "~/RoamNotes/" "\\.org$"))
 
 ;;; ==========================================
 ;;; completion framework
@@ -162,6 +190,13 @@
   :ensure t
   ;; bindings cleared: rely on your general 'spc' bindings to prevent overlap
   )
+
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  ;; Keep basic completion for files so remote paths or specific file setups don't break
+  (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package vertico
   :ensure t
