@@ -164,6 +164,7 @@
          ("C-c n i" . org-roam-node-insert)
          ("C-c n c" . org-roam-capture))
   :config
+  (setq org-roam-file-exclude-regexp "\\.gpg$")
   (org-roam-db-autosync-mode))
 
 (general-define-key
@@ -182,6 +183,16 @@
 
 ;; Agenda (this might be slow when have so much notes)
 (setq org-agenda-files (directory-files-recursively "~/RoamNotes/" "\\.org$"))
+
+;;; ==========================================
+;;; encryption (epa)
+;;; ==========================================
+(require 'epa-file)
+(epa-file-enable)
+(setq epa-file-encrypt-to nil)  ;; Forces symmetric encryption (password only)
+(setq epa-file-select-keys nil) ;; Skips the "select public key" prompt
+(setq epg-pinentry-mode 'loopback)
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
 ;;; ==========================================
 ;;; completion framework
