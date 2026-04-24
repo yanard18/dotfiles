@@ -120,9 +120,20 @@
   (org-src-preserve-indentation t)
   :config
   (require 'org-tempo)
-  (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file)
-  ;; Note: directory-files-recursively can slow down startup if the folder is huge.
-  (setq org-agenda-files (directory-files-recursively "~/RoamNotes/" "\\.org$")))
+  (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
+
+(use-package org-roam
+  :custom
+  (org-roam-directory (file-truename "~/RoamNotes"))
+  (org-roam-file-exclude-regexp "\\.gpg$")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture))
+  :config
+  (when (file-directory-p org-roam-directory)
+	(org-roam-db-autosync-mode)))
 
 (use-package org-appear
   :hook (org-mode . org-appear-mode)
@@ -140,17 +151,6 @@
   (org-modern-priority t)
   (org-modern-keyword t))
 
-(use-package org-roam
-  :custom
-  (org-roam-directory (file-truename "~/RoamNotes"))
-  (org-roam-file-exclude-regexp "\\.gpg$")
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n g" . org-roam-graph)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n c" . org-roam-capture))
-  :config
-  (org-roam-db-autosync-mode))
 
 ;;; ==========================================
 ;;; encryption (epa)
@@ -182,6 +182,14 @@
   :config
   (setq minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
+
+;;; ==========================================
+;;; git (magit)
+;;; ==========================================
+(use-package magit
+  :custom
+  ;; Optional: Makes Magit open in the current window rather than splitting
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 ;;; ==========================================
 ;;; markdown
@@ -235,6 +243,7 @@
     "nc" 'org-roam-capture
     "p"  'consult-yank-pop
     "u"  'undo-tree-visualize
+    "mg" 'magit-status
     "cr" 'eglot-rename
     "cu" 'xref-find-references
     "ca" 'eglot-code-actions)
