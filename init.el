@@ -54,6 +54,26 @@
   :config
   (load-theme 'gruber-darker t))
 
+
+;;; ==========================================
+;;; LSP / Eglot (C++ Intelligence)
+;;; ==========================================
+
+(use-package eglot
+  :ensure nil ;; Built-in, no need to download if on Emacs 29+
+  :hook ((c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure))
+  :config
+  ;; This helps Eglot find the clangd server you just installed
+  (add-to-list 'eglot-server-programs
+               '((c++-mode c-mode) . ("clangd")))
+  
+  ;; Make the leader key work for renaming and actions
+  (my-leader-def
+    "cr" 'eglot-rename
+	"cu" 'xref-find-references
+    "ca" 'eglot-code-actions))
+
 ;;; ==========================================
 ;;; evil mode (vim emulation)
 ;;; ==========================================
@@ -72,6 +92,7 @@
   (define-key evil-motion-state-map (kbd "j") 'evil-next-visual-line)
   (define-key evil-motion-state-map (kbd "k") 'evil-previous-visual-line))
 
+
 (use-package evil-collection
   :after evil
   :ensure t
@@ -79,24 +100,13 @@
   (evil-collection-init))
 
 ;;; ==========================================
-;;; leader key (general.el)
+;;; yank 
 ;;; ==========================================
-(use-package general
-  :ensure t
-  :config
-  (general-create-definer my-leader-def
-    :states '(normal visual motion emacs)
-    :keymaps 'override
-    :prefix "SPC"
-    :non-normal-prefix "M-SPC")
 
-  ;; single source of truth for core actions (removed m-s overlapping logic)
-  (my-leader-def
-    "b" 'consult-buffer
-    "f" 'consult-find
-    "s" 'consult-line
-    "g" 'consult-grep
-    "i" 'ibuffer))
+(setq select-enable-clipboard t)
+(setq select-enable-primary t)
+(setq save-interprogram-paste-before-kill t)
+(setq yank-pop-change-selection t)
 
 ;;; ==========================================
 ;;; colors
@@ -106,6 +116,14 @@
   (let ((inhibit-read-only t))
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
 (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer)
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode 1)
+  :config
+  (setq undo-tree-auto-save-history nil)
+  (evil-set-undo-system 'undo-tree))
 
 ;;; ==========================================
 ;;; org mode
@@ -143,16 +161,6 @@
    org-modern-tag t
    org-modern-priority t
    org-modern-keyword t))
-
-
-;; center the text and set 80 col wdith
-(use-package visual-fill-column
-  :ensure t
-  :hook (org-mode . visual-fill-column-mode)
-  :custom
-  (fill-column 80)
-  (visual-fill-column-width 80)
-  (visual-fill-column-center-text t))
 
 (use-package org-roam
   :ensure t
@@ -261,3 +269,27 @@
  '(markdown-header-face-3 ((t (:inherit bold :foreground "white" :height 1.1))))
  '(markdown-code-face ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch :family "monospace"))))
 )
+
+;;; ==========================================
+;;; leader key (general.el)
+;;; ==========================================
+(use-package general
+  :ensure t
+  :config
+  (general-create-definer my-leader-def
+    :states '(normal visual motion emacs)
+    :keymaps 'override
+    :prefix "SPC"
+    :non-normal-prefix "M-SPC")
+
+  (my-leader-def
+    "b" 'consult-buffer
+    "f" 'consult-find
+    "s" 'consult-line
+	"g" 'consult-grep
+	"i" 'ibuffer
+	"nf" 'org-roam-node-find
+    "ni" 'org-roam-node-insert
+    "nc" 'org-roam-capture
+	"p" 'consult-yank-pop'
+	"u" 'undo-tree-visualize))
