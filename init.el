@@ -229,16 +229,16 @@
 ;;; faces (org & markdown)
 ;;; ==========================================
 (custom-set-faces
- '(org-level-1 ((t (:inherit outline-1 :weight semi-bold :height 1.0 :foreground "#96a6c8")))) ;; Niagara Blue
- '(org-level-2 ((t (:inherit outline-2 :weight normal :height 1.0 :foreground "#9e95c7"))))     ;; Wisteria Purple
- '(org-level-3 ((t (:inherit outline-3 :weight normal :height 1.0 :foreground "#73c936"))))    ;; Green
- '(org-level-4 ((t (:inherit outline-4 :weight normal :height 1.0 :foreground "#cc8c3c"))))     ;; Brown
+ '(org-level-1 ((t (:inherit outline-1 :weight semi-bold :height 1.0 :foreground "#96a6c8")))) ;; niagara blue
+ '(org-level-2 ((t (:inherit outline-2 :weight normal :height 1.0 :foreground "#8e84b8"))))    ;; darker wisteria purple
+ '(org-level-3 ((t (:inherit outline-3 :weight normal :height 1.0 :foreground "#cc8c3c"))))    ;; brown (former level-4)
+ '(org-level-4 ((t (:inherit outline-4 :weight normal :height 1.0 :foreground "#9e6b29"))))     ;; darker brown
  ;; org blocks
  '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
  '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
  '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
- ;; org - code & verbatim (Updated for a cleaner, box-less look)
- '(org-code ((t (:background "#242424" :foreground "#96a6c8" :inherit fixed-pitch))))
+ ;; org - code & verbatim (updated for a cleaner, box-less look & warm gruber tones)
+ '(org-code ((t (:background "#242424" :foreground "#e4b55e" :inherit fixed-pitch))))          ;; warm gruber gold/orange
  '(org-verbatim ((t (:inherit org-code :family "monospace"))))
  '(markdown-inline-code-face ((t (:inherit org-code :family "monospace"))))
  ;; markdown
