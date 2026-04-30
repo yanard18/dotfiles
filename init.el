@@ -44,7 +44,7 @@
                          ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
-;; Avoid typing :ensure t for every package
+;; avoid typing :ensure t for every package
 (setq use-package-always-ensure t)
 
 ;;; --- theme ---
@@ -56,10 +56,10 @@
   (load-theme 'gruber-darker t))
 
 ;;; ==========================================
-;;; LSP / Eglot (C++ Intelligence)
+;;; lsp / eglot (c++ intelligence)
 ;;; ==========================================
 (use-package eglot
-  :ensure nil ;; Built-in, override auto-ensure
+  :ensure nil ;; built-in, override auto-ensure
   :hook ((c-mode . eglot-ensure)
          (c++-mode . eglot-ensure))
   :config
@@ -84,6 +84,16 @@
   :after evil
   :config
   (evil-collection-init))
+
+;;; ==========================================
+;;; evil org (vim keys for org & agenda)
+;;; ==========================================
+(use-package evil-org
+  :after org
+  :hook (org-mode . evil-org-mode)
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
 
 ;;; ==========================================
 ;;; yank & undo
@@ -118,13 +128,16 @@
   (org-src-window-setup 'current-window) 
   (org-edit-src-content-indentation 0)
   (org-src-preserve-indentation t)
+  (org-todo-keyword-faces
+   '(("IN-PROGRESS" . (:foreground "#8eb0eb" :weight bold))
+	 ("WAITING"     . (:foreground "#ffdd33" :weight bold))))
   :config
   (require 'org-tempo)
   (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
 
 (use-package org-roam
   :custom
-  (org-roam-directory (file-truename "~/RoamNotes"))
+  (org-roam-directory (file-truename "~/roamnotes"))
   (org-roam-file-exclude-regexp "\\.gpg$")
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
@@ -151,6 +164,15 @@
   (org-modern-priority t)
   (org-modern-keyword t))
 
+;;; ==========================================
+;;; org agenda
+;;; ==========================================
+
+(setq org-agenda-files '("~/roamnotes/agenda/"))
+(setq org-default-notes-file "~/roamnotes/agenda/inbox.org")
+(setq org-capture-templates
+      '(("t" "todo" entry (file+headline org-default-notes-file "tasks")
+         "* todo %?\n  %u\n  %i" :empty-lines 1)))
 
 ;;; ==========================================
 ;;; encryption (epa)
@@ -188,7 +210,7 @@
 ;;; ==========================================
 (use-package magit
   :custom
-  ;; Optional: Makes Magit open in the current window rather than splitting
+  ;; optional: makes magit open in the current window rather than splitting
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 ;;; ==========================================
@@ -207,12 +229,16 @@
 ;;; faces (org & markdown)
 ;;; ==========================================
 (custom-set-faces
+ '(org-level-1 ((t (:inherit outline-1 :weight semi-bold :height 1.0 :foreground "#96a6c8")))) ;; Niagara Blue
+ '(org-level-2 ((t (:inherit outline-2 :weight normal :height 1.0 :foreground "#9e95c7"))))     ;; Wisteria Purple
+ '(org-level-3 ((t (:inherit outline-3 :weight normal :height 1.0 :foreground "#73c936"))))    ;; Green
+ '(org-level-4 ((t (:inherit outline-4 :weight normal :height 1.0 :foreground "#cc8c3c"))))     ;; Brown
  ;; org blocks
  '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
  '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
  '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
- ;; org - code & verbatim
- '(org-code ((t (:background "#2e2e2e" :foreground "#ce9178" :box (:line-width 1 :color "#3e3e3e") :inherit fixed-pitch))))
+ ;; org - code & verbatim (Updated for a cleaner, box-less look)
+ '(org-code ((t (:background "#242424" :foreground "#96a6c8" :inherit fixed-pitch))))
  '(org-verbatim ((t (:inherit org-code :family "monospace"))))
  '(markdown-inline-code-face ((t (:inherit org-code :family "monospace"))))
  ;; markdown
@@ -226,6 +252,7 @@
 ;;; ==========================================
 (use-package general
   :config
+  (general-auto-unbind-keys)
   (general-create-definer my-leader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
@@ -238,6 +265,8 @@
     "s"  'consult-line
     "g"  'consult-grep
     "i"  'ibuffer
+    "a"  'org-agenda
+    "tc"  'org-capture
     "nf" 'org-roam-node-find
     "ni" 'org-roam-node-insert
     "nc" 'org-roam-capture
@@ -251,4 +280,4 @@
   (general-define-key
    :keymaps 'org-mode-map
    :states '(normal motion)
-   "RET" 'org-open-at-point))
+   "ret" 'org-open-at-point))
