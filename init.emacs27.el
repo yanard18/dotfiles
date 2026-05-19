@@ -1,0 +1,227 @@
+;;; ==========================================
+;;; core ui & behavior
+;;; ==========================================
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(column-number-mode 1)
+(global-display-line-numbers-mode 1)
+(global-auto-revert-mode t)
+
+(setq display-line-numbers-type 'visual
+      inhibit-startup-screen t
+      initial-scratch-message ""
+      initial-major-mode 'lisp-interaction-mode) 
+
+;;; --- tabs & indentation ---
+(setq-default indent-tabs-mode t       ;; use tabs instead of spaces
+              tab-always-indent nil    ;; tab key inserts real tab when appropriate
+              tab-width 4              ;; visual width of a tab
+              standard-indent 4        ;; indentation step
+              backward-delete-char-untabify nil) ;; don't turn tabs into spaces on delete
+
+(defun my-c-hook ()
+  (c-set-style "linux")
+  (setq c-basic-offset 4)
+  (setq-local evil-shift-width 4))
+
+(add-hook 'c-mode-hook 'my-c-hook)
+(add-hook 'c++-mode-hook 'my-c-hook)
+
+;;; --- auto save & backup ---
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups/"))
+      auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save/" t))
+      create-lockfiles nil) ;; disable lock files (.#filename)
+
+(make-directory "~/.emacs.d/backups/" t)
+(make-directory "~/.emacs.d/auto-save/" t)
+
+;;; ==========================================
+;;; package management
+;;; ==========================================
+(require 'package)
+(setq package-archives '(("gnu"   . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+
+;; Disable GPG signature checking for strict/office environments
+(setq package-check-signature nil)
+
+(package-initialize)
+
+;; Bootstrap use-package (will now work without GPG blocks)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
+
+;; avoid typing :ensure t for every package
+(setq use-package-always-ensure t)
+
+;;; --- theme ---
+(setq custom-file "~/.emacs.d/emacs.custom")
+(load custom-file 'noerror)
+
+(use-package gruber-darker-theme
+  :config
+  (load-theme 'gruber-darker t))
+
+;;; ==========================================
+;;; lsp / eglot (c++ intelligence)
+;;; ==========================================
+(use-package eglot
+  :ensure t ;; Must be t for Emacs 27.1 to download from MELPA
+  :hook ((c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure))
+  :config
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd"))))
+
+;;; ==========================================
+;;; evil mode (vim emulation)
+;;; ==========================================
+(use-package evil
+  :init
+  (setq evil-want-integration t
+        evil-want-keybinding nil)
+  :config
+  (evil-mode 1)
+  (setq evil-backspace-join-lines nil
+        evil-want-visual-char-semi-at-end-of-line t)
+  (define-key evil-insert-state-map [backspace] 'backward-delete-char)
+  (define-key evil-motion-state-map (kbd "j") 'evil-next-visual-line)
+  (define-key evil-motion-state-map (kbd "k") 'evil-previous-visual-line))
+
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+;;; ==========================================
+;;; evil org (vim keys for org & agenda)
+;;; ==========================================
+(use-package evil-org
+  :after org
+  :hook (org-mode . evil-org-mode)
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+;;; ==========================================
+;;; yank & undo
+;;; ==========================================
+(setq select-enable-clipboard t
+      select-enable-primary t
+      save-interprogram-paste-before-kill t
+      yank-pop-change-selection t)
+
+(use-package undo-tree
+  :init
+  (global-undo-tree-mode 1)
+  :config
+  (setq undo-tree-auto-save-history nil)
+  (evil-set-undo-system 'undo-tree))
+
+;;; ==========================================
+;;; compilation colors
+;;; ==========================================
+(require 'ansi-color)
+(add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+
+;;; ==========================================
+;;; org mode
+;;; ==========================================
+(use-package org
+  :hook (org-mode . visual-line-mode)
+  :custom
+  (org-hide-emphasis-markers t)
+  (org-hide-drawer-startup t)
+  (org-return-follows-link t)
+  (org-src-window-setup 'current-window) 
+  (org-edit-src-content-indentation 0)
+  (org-src-preserve-indentation t)
+  (org-todo-keyword-faces
+   '(("IN-PROGRESS" . (:foreground "#8eb0eb" :weight bold))
+     ("WAITING"     . (:foreground "#ffdd33" :weight bold))))
+  :config
+  (require 'org-tempo)
+  (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
+
+;;; ==========================================
+;;; org agenda
+;;; ==========================================
+(setq org-agenda-files '("~/roamnotes/agenda/"))
+(setq org-default-notes-file "~/roamnotes/agenda/inbox.org")
+(setq org-capture-templates
+      '(("t" "todo" entry (file+headline org-default-notes-file "tasks")
+         "* todo %?\n  %u\n  %i" :empty-lines 1)))
+
+;;; ==========================================
+;;; encryption (epa)
+;;; ==========================================
+(require 'epa-file)
+(epa-file-enable)
+(setq epa-file-encrypt-to nil 
+      epa-file-select-keys nil 
+      epg-pinentry-mode 'loopback
+      epa-file-cache-passphrase-for-symmetric-encryption t)
+
+;;; ==========================================
+;;; completion framework
+;;; ==========================================
+(use-package counsel
+  :init
+  (ivy-mode 1)
+  :custom
+  (ivy-use-virtual-buffers t)
+  (ivy-count-format "(%d/%d) "))
+
+;;; ==========================================
+;;; faces (org & markdown styling)
+;;; ==========================================
+(custom-set-faces
+ '(org-level-1 ((t (:inherit outline-1 :weight semi-bold :height 1.0 :foreground "#96a6c8")))) ;; niagara blue
+ '(org-level-2 ((t (:inherit outline-2 :weight normal :height 1.0 :foreground "#8e84b8"))))    ;; darker wisteria purple
+ '(org-level-3 ((t (:inherit outline-3 :weight normal :height 1.0 :foreground "#cc8c3c"))))    ;; brown (former level-4)
+ '(org-level-4 ((t (:inherit outline-4 :weight normal :height 1.0 :foreground "#9e6b29"))))      ;; darker brown
+ ;; org blocks
+ '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
+ '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
+ '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
+ ;; org - code & verbatim (updated for a cleaner, box-less look & warm gruber tones)
+ '(org-code ((t (:background "#242424" :foreground "#e4b55e" :inherit fixed-pitch))))          ;; warm gruber gold/orange
+ '(org-verbatim ((t (:inherit org-code :family "monospace"))))
+ '(markdown-inline-code-face ((t (:inherit org-code :family "monospace"))))
+ ;; markdown (kept for aesthetic consistency, though markdown-mode is removed)
+ '(markdown-header-face-1 ((t (:inherit bold :foreground "white" :height 1.4))))
+ '(markdown-header-face-2 ((t (:inherit bold :foreground "white" :height 1.2))))
+ '(markdown-header-face-3 ((t (:inherit bold :foreground "white" :height 1.1))))
+ '(markdown-code-face ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch :family "monospace")))))
+
+;;; ==========================================
+;;; leader key (general.el)
+;;; ==========================================
+(use-package general
+  :config
+  (general-auto-unbind-keys)
+  (general-create-definer my-leader-def
+    :states '(normal visual motion emacs)
+    :keymaps 'override
+    :prefix "SPC"
+    :non-normal-prefix "M-SPC")
+
+  (my-leader-def
+    "b"  'ivy-switch-buffer
+    "f"  'counsel-find-file
+    "s"  'counsel-grep-or-swiper
+    "i"  'ibuffer
+    "a"  'org-agenda
+    "tc" 'org-capture
+    "p"  'counsel-yank-pop
+    "u"  'undo-tree-visualize
+    "cr" 'eglot-rename
+    "cu" 'xref-find-references
+    "ca" 'eglot-code-actions)
+    
+  (general-define-key
+   :keymaps 'org-mode-map
+   :states '(normal motion)
+   "ret" 'org-open-at-point))
