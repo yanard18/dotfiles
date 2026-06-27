@@ -48,13 +48,16 @@
 (setq use-package-always-ensure t)
 
 ;;; --- theme ---
-(setq custom-file "~/.emacs.d/emacs.custom")
-(load custom-file 'noerror)
-
 (use-package gruber-darker-theme
-  :config
-  (load-theme 'gruber-darker t))
+  :ensure t
+  :init
+  ;; Force Emacs to find the theme inside the ELPA package directory on startup
+  (let ((package-dir (file-name-directory (or (locate-library "gruber-darker-theme") ""))))
+    (when package-dir
+      (add-to-list 'custom-theme-load-path package-dir))))
 
+;; Load it AFTER your custom-set-faces or right here
+(load-theme 'gruber-darker t)
 ;;; ==========================================
 ;;; lsp / eglot (c++ intelligence)
 ;;; ==========================================
@@ -229,23 +232,24 @@
 ;;; faces (org & markdown)
 ;;; ==========================================
 (custom-set-faces
- '(org-level-1 ((t (:inherit outline-1 :weight semi-bold :height 1.0 :foreground "#96a6c8")))) ;; niagara blue
- '(org-level-2 ((t (:inherit outline-2 :weight normal :height 1.0 :foreground "#8e84b8"))))    ;; darker wisteria purple
- '(org-level-3 ((t (:inherit outline-3 :weight normal :height 1.0 :foreground "#cc8c3c"))))    ;; brown (former level-4)
- '(org-level-4 ((t (:inherit outline-4 :weight normal :height 1.0 :foreground "#9e6b29"))))     ;; darker brown
- ;; org blocks
- '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
- '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
- '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
- ;; org - code & verbatim (updated for a cleaner, box-less look & warm gruber tones)
- '(org-code ((t (:background "#242424" :foreground "#e4b55e" :inherit fixed-pitch))))          ;; warm gruber gold/orange
- '(org-verbatim ((t (:inherit org-code :family "monospace"))))
- '(markdown-inline-code-face ((t (:inherit org-code :family "monospace"))))
- ;; markdown
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(markdown-code-face ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch :family "monospace"))))
  '(markdown-header-face-1 ((t (:inherit bold :foreground "white" :height 1.4))))
  '(markdown-header-face-2 ((t (:inherit bold :foreground "white" :height 1.2))))
  '(markdown-header-face-3 ((t (:inherit bold :foreground "white" :height 1.1))))
- '(markdown-code-face ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch :family "monospace")))))
+ '(markdown-inline-code-face ((t (:inherit org-code :family "monospace"))))
+ '(org-block ((t (:background "#1e1e1e" :extend t :inherit fixed-pitch))))
+ '(org-block-begin-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
+ '(org-block-end-line ((t (:background "#252525" :foreground "#51afef" :extend t :inherit fixed-pitch))))
+ '(org-code ((t (:background "#242424" :foreground "#e4b55e" :inherit fixed-pitch))))
+ '(org-level-1 ((t (:inherit outline-1 :weight semi-bold :height 1.0 :foreground "#96a6c8"))))
+ '(org-level-2 ((t (:inherit outline-2 :weight normal :height 1.0 :foreground "#8e84b8"))))
+ '(org-level-3 ((t (:inherit outline-3 :weight normal :height 1.0 :foreground "#cc8c3c"))))
+ '(org-level-4 ((t (:inherit outline-4 :weight normal :height 1.0 :foreground "#9e6b29"))))
+ '(org-verbatim ((t (:inherit org-code :family "monospace")))))
 
 ;;; ==========================================
 ;;; leader key (general.el)
@@ -281,3 +285,9 @@
    :keymaps 'org-mode-map
    :states '(normal motion)
    "ret" 'org-open-at-point))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages nil))
