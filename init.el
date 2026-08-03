@@ -8,6 +8,7 @@
 (global-display-line-numbers-mode 1)
 (global-auto-revert-mode t)
 
+
 (setq display-line-numbers-type 'visual
       inhibit-startup-screen t
       initial-scratch-message ""
@@ -125,18 +126,24 @@
 (use-package org
   :hook (org-mode . visual-line-mode)
   :custom
+  (org-attach-use-inheritance t)
+  (org-attach-auto-tag nil)
   (org-hide-emphasis-markers t)
   (org-hide-drawer-startup t)
   (org-return-follows-link t)
   (org-src-window-setup 'current-window) 
   (org-edit-src-content-indentation 0)
   (org-src-preserve-indentation t)
+  (org-startup-with-inline-images t)
   (org-todo-keyword-faces
    '(("IN-PROGRESS" . (:foreground "#8eb0eb" :weight bold))
 	 ("WAITING"     . (:foreground "#ffdd33" :weight bold))))
   :config
   (require 'org-tempo)
   (setf (cdr (assoc 'file org-link-frame-setup)) 'find-file))
+
+;; FOLD HEADERS
+(setq org-startup-folded 'overview)
 
 (use-package org-roam
   :custom
@@ -284,7 +291,7 @@
   (general-define-key
    :keymaps 'org-mode-map
    :states '(normal motion)
-   "ret" 'org-open-at-point))
+   (kbd "RET") 'org-open-at-point))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
